@@ -19,9 +19,10 @@
 package golem
 
 import (
-	"github.com/gorilla/websocket"
 	"reflect"
 	"time"
+
+	"github.com/gorilla/websocket"
 )
 
 const (
@@ -73,21 +74,21 @@ func newConnection(s *websocket.Conn, r *Router) *Connection {
 // Register connection and start writing and reading loops.
 func (conn *Connection) run() {
 	hub.register <- conn
-    readMode := websocket.TextMessage
-    writeMode := websocket.TextMessage
-    if conn.router.protocol.GetReadMode() != TextMode {
-        readMode = websocket.BinaryMessage
-    }
-    if conn.router.protocol.GetWriteMode() != TextMode {
-        writeMode = websocket.BinaryMessage
-    }
-    if conn.router.useHeartbeats {
-        go conn.writePumpHeartbeat(writeMode)
-        conn.readPumpHeartbeat(readMode)
-    } else {
-        go conn.writePump(writeMode)
-        conn.readPump(readMode)
-    }
+	readMode := websocket.TextMessage
+	writeMode := websocket.TextMessage
+	if conn.router.protocol.GetReadMode() != TextMode {
+		readMode = websocket.BinaryMessage
+	}
+	if conn.router.protocol.GetWriteMode() != TextMode {
+		writeMode = websocket.BinaryMessage
+	}
+	if conn.router.useHeartbeats {
+		go conn.writePumpHeartbeat(writeMode)
+		conn.readPumpHeartbeat(readMode)
+	} else {
+		go conn.writePump(writeMode)
+		conn.readPump(readMode)
+	}
 }
 
 func (conn *Connection) extend(e interface{}) {
@@ -114,6 +115,11 @@ func (conn *Connection) write(mode int, payload []byte) error {
 	return conn.socket.WriteMessage(mode, payload)
 }
 
+// added for get connection information
+func (conn *Connection) GetSocket() *websocket.Conn {
+	return conn.socket
+}
+
 /*
  * Pumps with Heartbeat.
  */
@@ -126,18 +132,18 @@ func (conn *Connection) readPumpHeartbeat(mode int) {
 	}()
 	conn.socket.SetReadLimit(maxMessageSize)
 	conn.socket.SetReadDeadline(time.Now().Add(readWait))
-    conn.socket.SetPongHandler(func(string) error {
-        conn.socket.SetReadDeadline(time.Now().Add(readWait))
-        return nil
-    })
+	conn.socket.SetPongHandler(func(string) error {
+		conn.socket.SetReadDeadline(time.Now().Add(readWait))
+		return nil
+	})
 	for {
 		mm, message, err := conn.socket.ReadMessage()
 		if err != nil {
 			break
 		}
-        if mm == mode {
-            conn.router.processMessage(conn, message)
-        }
+		if mm == mode {
+			conn.router.processMessage(conn, message)
+		}
 	}
 }
 
@@ -153,11 +159,11 @@ func (conn *Connection) writePumpHeartbeat(mode int) {
 			if ok {
 				if data, err := conn.router.protocol.MarshalAndPack(message.event, message.data); err == nil {
 					if err := conn.write(mode, data); err != nil {
-						return 
+						return
 					}
 				} else {
-                    // TODO: logging
-                }
+					// TODO: logging
+				}
 			} else {
 				conn.write(websocket.CloseMessage, []byte{})
 				return
@@ -186,9 +192,9 @@ func (conn *Connection) readPump(mode int) {
 		if err != nil {
 			break
 		}
-        if mm == mode {
-            conn.router.processMessage(conn, message)
-        }
+		if mm == mode {
+			conn.router.processMessage(conn, message)
+		}
 	}
 }
 
@@ -202,11 +208,11 @@ func (conn *Connection) writePump(mode int) {
 			if ok {
 				if data, err := conn.router.protocol.MarshalAndPack(message.event, message.data); err == nil {
 					if err := conn.write(mode, data); err != nil {
-						return 
+						return
 					}
 				} else {
-                    // TODO: logging
-                }
+					// TODO: logging
+				}
 			} else {
 				conn.write(websocket.CloseMessage, []byte{})
 				return
@@ -214,5 +220,3 @@ func (conn *Connection) writePump(mode int) {
 		}
 	}
 }
-
-

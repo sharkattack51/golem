@@ -102,3 +102,12 @@ func (r *Room) Emit(event string, data interface{}) {
 		data:  data,
 	}
 }
+
+// added for get connection information
+func (r *Room) GetMembers() []*Connection {
+	conns := []*Connection{}
+	for k, _ := range r.members {
+		conns = append(conns, k)
+	}
+	return conns
+}
