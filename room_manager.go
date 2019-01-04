@@ -280,16 +280,16 @@ func (rm *RoomManager) On(eventName string, callback interface{}) {
 
 // added for get connection information
 type RoomInfo struct {
-	Channel string
-	Room    *Room
+	Topic string
+	Room  *Room
 }
 
 func (rm *RoomManager) GetRoomInfos() []*RoomInfo {
 	roomInfos := []*RoomInfo{}
 	for k, v := range rm.rooms {
 		roomInfos = append(roomInfos, &RoomInfo{
-			Channel: k,
-			Room:    v.room,
+			Topic: k,
+			Room:  v.room,
 		})
 	}
 	return roomInfos
